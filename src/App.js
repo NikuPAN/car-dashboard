@@ -13,6 +13,7 @@ import TableRowsIcon from '@mui/icons-material/TableRows';
 import GridViewIcon from '@mui/icons-material/GridView';
 import loadCarData from './load_data';
 import CarCard from './components/CarCard';
+import logo from './assets/logo.jpg';
 
 // Styled search bar
 const SearchBar = styled('div')(({ theme }) => ({
@@ -67,6 +68,7 @@ export default function App() {
       {/* Fixed AppBar */}
       <AppBar position="fixed" color="primary" elevation={1}>
         <Toolbar sx={{ width: { xs: '100%', lg: '80vw' }, mx: 'auto' }}>
+        <Box component="img" src={logo} alt="Logo" sx={{ width: 32, height: 32, mr: 1 }} />
           <Typography variant="h6" noWrap>
             車輛底盤調教 by 鹹魚老默
           </Typography>

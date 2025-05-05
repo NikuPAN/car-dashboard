@@ -56,7 +56,7 @@ export default function loadCarData() {
             if (g.end - g.start === 1) {
               rec[g.name] = span[0];
             } else if (COMBINE.has(g.name)) {
-              rec[g.name] = span.join('');
+              rec[g.name] = span.join(', ');
             } else {
               // split into sub-fields
               for (let i = g.start; i < g.end; i++) {
