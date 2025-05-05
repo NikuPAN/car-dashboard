@@ -1,21 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  createTheme,
-  ThemeProvider,
-  CssBaseline,
-  AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Box,
-  Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper
+  createTheme, ThemeProvider, CssBaseline,
+  AppBar, Toolbar, Typography, IconButton,
+  Box, Grid, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, Paper
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
@@ -34,7 +22,7 @@ const SearchBar = styled('div')(({ theme }) => ({
   '&:hover': { backgroundColor: alpha(theme.palette.action.selected, 0.25) },
   margin: theme.spacing(1, 0),
   width: '100%',
-  height: 40
+  height: 48
 }));
 const SearchIconWrapper = styled('div')(({ theme }) => ({
   padding: theme.spacing(0,2),
@@ -59,8 +47,8 @@ const StyledInput = styled('input')(({ theme }) => ({
 export default function App() {
   const [cars, setCars] = useState([]);
   const [search, setSearch] = useState('');
-  const [mode, setMode] = useState('light');
-  const [view, setView] = useState('card');
+  const [mode, setMode] = useState('dark'); // default dark mode
+  const [view, setView] = useState('table');
 
   useEffect(() => { loadCarData().then(setCars).catch(console.error); }, []);
   const theme = useMemo(() => createTheme({ palette: { mode } }), [mode]);
@@ -69,16 +57,16 @@ export default function App() {
     [cars, search]
   );
 
-  // Heights for AppBar and SearchBar
+  // Layout constants
   const APPBAR_HEIGHT = 64;
   const SEARCHBAR_HEIGHT = 48;
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {/* Fixed AppBar at top, width 80% */}
+      {/* Fixed AppBar */}
       <AppBar position="fixed" color="primary" elevation={1}>
-        <Toolbar sx={{ width: '75vw', mx: 'auto' }}>
+        <Toolbar sx={{ width: { xs: '100%', lg: '80vw' }, mx: 'auto' }}>
           <Typography variant="h6" noWrap>
             車輛底盤調教 by 鹹魚老默
           </Typography>
@@ -91,27 +79,21 @@ export default function App() {
           </IconButton>
         </Toolbar>
       </AppBar>
-      {/* Spacer for fixed AppBar */}
-      <Toolbar />
+      <Toolbar /> {/* Offset */}
 
-      {/* Container for static SearchBar and scrollable content */}
-      <Box sx={{ width: '75vw', mx: 'auto', mt: 2 }}>
-        {/* Static search bar */}
+      {/* Main Container */}
+      <Box sx={{ width: { xs: '100%', lg: '80vw' }, mx: 'auto', mt: 2, mb: 2 }}>
+        {/* Static Search Bar */}
         <SearchBar>
           <SearchIconWrapper><SearchIcon /></SearchIconWrapper>
-          <StyledInput
-            placeholder="Search…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <StyledInput placeholder="Search…" value={search} onChange={e => setSearch(e.target.value)} />
         </SearchBar>
-        {/* Scrollable content area */}
-        <Box
-          sx={{
-            height: `calc(100vh - ${APPBAR_HEIGHT}px - ${SEARCHBAR_HEIGHT}px - 32px)`,
-            overflowY: 'auto'
-          }}
-        >
+
+        {/* Scrollable Content */}
+        <Box sx={{
+          height: `calc(100vh - ${APPBAR_HEIGHT}px - ${SEARCHBAR_HEIGHT}px - 32px)`,
+          overflowY: 'auto'
+        }}>
           {view === 'card' ? (
             <Grid container spacing={2} direction="column">
               {filtered.map((car, i) => (
@@ -122,19 +104,26 @@ export default function App() {
             </Grid>
           ) : (
             <TableContainer component={Paper}>
-              <Table size="large">
+              <Table size="large" aria-label="car table">
                 <TableHead>
                   <TableRow>
-                    {Object.keys(filtered[0] || {}).map(k => (
-                      <TableCell key={k}><strong>{k}</strong></TableCell>
+                    {Object.keys(filtered[0] || {}).map(key => (
+                      <TableCell
+                        key={key}
+                        sx={{ minWidth: 120, whiteSpace: 'nowrap' }}
+                      >
+                        <strong>{key}</strong>
+                      </TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {filtered.map((car, idx) => (
                     <TableRow key={idx} hover>
-                      {Object.values(car).map((v, j) => (
-                        <TableCell key={j}>{v}</TableCell>
+                      {Object.values(car).map((val, j) => (
+                        <TableCell key={j} sx={{ whiteSpace: 'nowrap' }}>
+                          {val}
+                        </TableCell>
                       ))}
                     </TableRow>
                   ))}
