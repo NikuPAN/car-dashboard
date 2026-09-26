@@ -25,6 +25,11 @@ resampling (0.017% of pixels).
 **Never run the dev server in production again** — the container has no Node at runtime.
 
 ## Hosting & deploy — Nick's personal VPS
+- **Cut-over done 2026-09-26 (~12:30 Brisbane):** car-dashboard.niku-aws.com CNAME → `srv1672611.hstgr.cloud`; Let's Encrypt cert via Caddy
+  on-demand TLS. The Heroku app `car-dashboard` is off (dynos 0, maintenance on; it has no add-ons). Staging URL
+  https://car-dashboard.72-60-198-241.sslip.io points at the same container.
+- **Repo visibility (open as of 2026-09-26):** `NikuPAN/car-dashboard` is **public**. A self-hosted runner on a public repo lets fork PRs run
+  code on the VPS, so the runner is only registered once Nick makes the repo private (recommended) — otherwise deploy with `deploy/push-to-vps.sh`.
 - Runs on Nick's personal Hostinger VPS (`srv1672611`) as Docker Compose project **`car-dashboard`** in `/srv/personal-projects/car-dashboard/app`:
   multi-stage build (node:24 builds → `nginxinc/nginx-unprivileged:alpine-slim` serves), read-only root fs, `/tmp` tmpfs,
   config in `deploy/nginx.conf` (hashed `/assets/*` cached 1 year, `index.html` no-cache, `/healthz`). Behind the **shared Caddy**
