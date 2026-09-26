@@ -65,24 +65,45 @@ export default function App() {
 
   // Typing stays responsive: filtering runs on the deferred value while the input updates immediately.
   const q = useDeferredValue(search.trim().toLowerCase());
-  const matching = useMemo(() => (data ? data.cars.filter((c) => !q || c.search.includes(q)) : []), [data, q]);
-  const counts = useMemo(() => {
+  // A "model" is one car (class + name without the "(…)" suffix) with all of its tunes, in sheet order.
+  // Cards show models (with a tune switch); the table shows every tune as its own row.
+  const models = useMemo(() => {
     const m = new Map();
-    for (const c of matching) m.set(c.cls, (m.get(c.cls) ?? 0) + 1);
+    for (const car of data?.cars ?? []) {
+      const key = `${car.cls}|${car.base}`;
+      let g = m.get(key);
+      if (!g) m.set(key, (g = { key, id: car.id, cls: car.cls, base: car.base, name: car.base, tunes: [], updated: null }));
+      g.tunes.push(car);
+      if (car.updated && (!g.updated || car.updated > g.updated)) g.updated = car.updated;
+    }
+    return [...m.values()];
+  }, [data]);
+
+  const matchingTunes = useMemo(() => (data ? data.cars.filter((c) => !q || c.search.includes(q)) : []), [data, q]);
+  const matchingModels = useMemo(() => models.filter((m) => !q || m.tunes.some((t) => t.search.includes(q))), [models, q]);
+  const counts = useMemo(() => { // cars per class, following the search
+    const m = new Map();
+    for (const c of matchingModels) m.set(c.cls, (m.get(c.cls) ?? 0) + 1);
     return m;
-  }, [matching]);
-  const visible = useMemo(() => {
-    const list = cls === 'all' ? matching : matching.filter((c) => c.cls === cls);
-    if (sort === 'name') return [...list].sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }));
-    if (sort === 'updated') return [...list].sort((a, b) => (b.updated ?? '').localeCompare(a.updated ?? '') || a.id - b.id);
-    return list;
-  }, [matching, cls, sort]);
-  // Sheet order keeps the sheet's class sections; the other sorts are one flat list.
-  const groups = useMemo(() => {
-    if (!data) return [];
-    if (sort !== 'sheet') return [{ key: 'all', label: null, cars: visible }];
-    return data.classes.map((c) => ({ ...c, cars: visible.filter((car) => car.cls === c.key) })).filter((g) => g.cars.length);
-  }, [data, visible, sort]);
+  }, [matchingModels]);
+
+  const arrange = useCallback((list) => {
+    const inClass = cls === 'all' ? list : list.filter((c) => c.cls === cls);
+    const sorted = sort === 'name'
+      ? [...inClass].sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }))
+      : sort === 'updated'
+        ? [...inClass].sort((a, b) => (b.updated ?? '').localeCompare(a.updated ?? '') || a.id - b.id)
+        : inClass;
+    // Sheet order keeps the sheet's class sections; the other sorts are one flat list.
+    if (sort !== 'sheet') return [{ key: 'all', label: null, cars: sorted }];
+    return (data?.classes ?? []).map((c) => ({ ...c, cars: sorted.filter((x) => x.cls === c.key) })).filter((g) => g.cars.length);
+  }, [data, cls, sort]);
+  const cardGroups = useMemo(() => arrange(matchingModels), [arrange, matchingModels]);
+  const tableGroups = useMemo(() => arrange(matchingTunes), [arrange, matchingTunes]);
+  const shownModels = cardGroups.reduce((n, g) => n + g.cars.length, 0);
+  const shownTunes = view === 'cards'
+    ? cardGroups.reduce((n, g) => n + g.cars.reduce((k, m) => k + m.tunes.length, 0), 0)
+    : tableGroups.reduce((n, g) => n + g.cars.length, 0);
 
   const clearSearch = () => { setSearch(''); searchRef.current?.focus(); };
 
@@ -118,7 +139,7 @@ export default function App() {
           <div className="filters">
             <div className="chips" role="group" aria-label="組別">
               <button type="button" className="chip" aria-pressed={cls === 'all'} onClick={() => setCls('all')}>
-                全部<span className="count">{matching.length}</span>
+                全部<span className="count">{matchingModels.length}</span>
               </button>
               {data?.classes.map((c) => (
                 <button key={c.key} type="button" className={`chip tone-${tone(c.key)}`} aria-pressed={cls === c.key}
@@ -156,15 +177,17 @@ export default function App() {
           </div>
         ) : !data ? (
           <p className="state" aria-live="polite">載入資料中…</p>
-        ) : visible.length === 0 ? (
+        ) : shownModels === 0 ? (
           <div className="state">
             <p>找不到符合「{search.trim()}」的車輛{cls !== 'all' && `（${cls}組）`}。</p>
             <button type="button" className="btn" onClick={() => { setSearch(''); setCls('all'); }}>清除搜尋及篩選</button>
           </div>
         ) : (
           <>
-            <p className="result-count" aria-live="polite">顯示 {visible.length} / {data.cars.length} 部車</p>
-            {view === 'cards' ? groups.map((g) => (
+            <p className="result-count" aria-live="polite">
+              {view === "cards" ? `顯示 ${shownModels} / ${models.length} 款車（${shownTunes} 套調校）` : `顯示 ${shownTunes} / ${data.cars.length} 套調校`}
+            </p>
+            {view === 'cards' ? cardGroups.map((g) => (
               <section key={g.key} className="group" aria-label={g.label ?? '全部車輛'}>
                 {g.label && (
                   <h2 className={`group-title tone-${tone(g.key)}`}>
@@ -172,12 +195,12 @@ export default function App() {
                   </h2>
                 )}
                 <div className="card-grid">
-                  {g.cars.map((car) => <CarCard key={car.id} car={car} sections={data.sections} q={q} />)}
+                  {g.cars.map((m) => <CarCard key={m.key} model={m} sections={data.sections} q={q} />)}
                 </div>
               </section>
             )) : (
               <Suspense fallback={<p className="state">載入表格…</p>}>
-                <CarTable groups={groups} sections={data.sections} columns={data.columns} q={q} />
+                <CarTable groups={tableGroups} sections={data.sections} columns={data.columns} q={q} />
               </Suspense>
             )}
           </>

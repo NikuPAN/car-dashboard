@@ -29,8 +29,12 @@ Live at **https://car-dashboard.niku-aws.com** · GitHub: **`NikuPAN/car-dashboa
 - `src/App.jsx` — sticky top bar: search (`/` focuses, Esc clears, matches highlighted), class chips with live counts,
   sort (預設排序 = sheet order with class sections / 名稱 A–Z / 最近更新), 卡片/表格 switch, theme toggle, Discord link.
   Theme and view persist in `localStorage` (`cd-theme`, `cd-view`; every access guarded). Filtering uses `useDeferredValue`.
-- `src/components/CarCard.jsx` — every value visible, no expanding: the first section (改裝方向) as 5 cells, the others (懸吊, 車輪)
-  as side-by-side label/value columns. `src/components/CarTable.jsx` (**lazy-loaded**) mirrors the sheet's two-level header.
+- **Cards show cars, the table shows tunes.** `App.jsx` groups tunes into models by class + base name (the name without its "(…)"
+  suffix): 165 tunes → 113 cars, 32 of them with 2–4 tunes (tiers 0-3階/4-5階, ECU levels, kits like 曼巴套件). Chip counts and the
+  count line are per car in card view ("款車（套調校）") and per tune in table view.
+- `src/components/CarCard.jsx` — a car with several tunes gets a pill switch (sheet order; no suffix = 標準; "a, b" shown as "a · b");
+  a search that matches only a variant (e.g. "曼巴") pre-selects it. Every value is visible, no expanding: the first section (改裝方向)
+  as 5 cells, the others (懸吊, 車輪) as side-by-side label/value columns. `src/components/CarTable.jsx` (**lazy-loaded**) mirrors the sheet's two-level header.
 - `src/ui.jsx` — class colour mapping `tone()`, search `highlight()`, inline SVG icons.
 - `src/styles.css` — dark (default) / light tokens on `:root[data-theme]`; class colours via `.tone-*`; phones get a 3-row sticky bar
   (sort, view and class chips share one sideways-scrolling row).

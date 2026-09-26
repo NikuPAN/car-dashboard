@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState, useEffect, useMemo } from 'react';
 import { highlight, tone } from '../ui';
 
 function Value({ v }) {
@@ -7,19 +7,40 @@ function Value({ v }) {
   return v.text;
 }
 
-// One car, fully visible (no expanding): the first sheet section (改裝方向) as compact cells,
-// the remaining sections (懸吊, 車輪) side by side as label/value rows.
-export default memo(function CarCard({ car, sections, q }) {
+// "4-5階, 曼巴套件" -> "4-5階 · 曼巴套件"; a tune without a suffix is the standard one.
+const variantLabel = (tune) => (tune.variant ? tune.variant.split(/\s*[,，]\s*/).join(' · ') : '標準');
+
+// One car, fully visible (no expanding). A car with several tunes (tiers, ECU, kits) gets a switch;
+// the card shows the selected tune: the first sheet section (改裝方向) as cells, the others side by side.
+export default memo(function CarCard({ model, sections, q }) {
+  const [sel, setSel] = useState(0);
+  // A search that matches only some variants (e.g. "曼巴") selects the first of them.
+  const preferred = useMemo(() => {
+    if (!q || model.tunes.length < 2 || model.base.toLowerCase().includes(q)) return -1;
+    return model.tunes.findIndex((t) => t.variant?.toLowerCase().includes(q));
+  }, [q, model]);
+  useEffect(() => { if (preferred >= 0) setSel(preferred); }, [preferred]);
+
+  const car = model.tunes[Math.min(sel, model.tunes.length - 1)];
   const [tune, ...specs] = sections;
   return (
-    <article className={`card tone-${tone(car.cls)}`}>
+    <article className={`card tone-${tone(model.cls)}`}>
       <div className="card-head">
-        <h3 className="card-name">{highlight(car.base, q)}</h3>
-        <span className="badge">{car.cls}</span>
+        <h3 className="card-name">{highlight(model.base, q)}</h3>
+        <span className="badge">{model.cls}</span>
       </div>
-      {(car.variant || car.updated) && (
+      {model.tunes.length > 1 && (
+        <div className="variants" role="group" aria-label="調校版本">
+          {model.tunes.map((t, i) => (
+            <button key={t.id} type="button" className="variant" aria-pressed={t === car} onClick={() => setSel(i)}>
+              {highlight(variantLabel(t), q)}
+            </button>
+          ))}
+        </div>
+      )}
+      {((model.tunes.length === 1 && car.variant) || car.updated) && (
         <p className="card-meta">
-          {car.variant && <span className="tag">{highlight(car.variant, q)}</span>}
+          {model.tunes.length === 1 && car.variant && <span className="tag">{highlight(car.variant, q)}</span>}
           {car.updated && <time dateTime={car.updated}>更新 {car.updated}</time>}
         </p>
       )}

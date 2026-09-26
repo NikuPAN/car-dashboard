@@ -146,6 +146,16 @@ mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 1
 }
 .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 4px; font-size: 12px; color: var(--muted); }
 .tag { color: var(--text); background: var(--surface-2); border-radius: 5px; padding: 1px 7px; }
+/* Tune switch for cars with several tunes (tiers / ECU / kits). */
+.variants { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.variant {
+  height: 26px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: 999px;
+  background: none; color: var(--muted); font-size: 12px; white-space: nowrap;
+}
+.variant:hover { color: var(--text); }
+.variant[aria-pressed='true'] {
+  color: var(--text); border-color: var(--tone); background: color-mix(in srgb, var(--tone) 16%, var(--surface-2));
+}
 .card-meta time { font-variant-numeric: tabular-nums; }
 
 .section-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 6px; }
