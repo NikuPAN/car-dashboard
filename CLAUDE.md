@@ -2,13 +2,14 @@
 
 A static single-page dashboard of car chassis tunes. **No backend, no database, no secrets**: the browser downloads a public
 Google Sheet as CSV and renders it as a searchable card grid or a dense table.
-Live at **https://car-dashboard.niku-aws.com** · GitHub **`NikuPAN/car-dashboard-private`** (private, deployed).
+Live at **https://car-dashboard.niku-aws.com** · GitHub: **`NikuPAN/car-dashboard-private`** (deploys) + **`NikuPAN/car-dashboard`** (public, open source).
 
-**Two repos (since 2026-09-26):** all work goes to the **private** `NikuPAN/car-dashboard-private` (git remote `origin`), which has the
-self-hosted runner. The **public** `NikuPAN/car-dashboard` (remote `public`) stays as Nick's open-source snapshot of the original
-Create React App version (`58a1857`). **Never push to `public`**, and never add a runner or the deploy workflow there: a runner on a
-public repo lets any fork PR run code on the VPS. Publishing newer code to the public repo is Nick's call, and it must leave out
-`deploy/`, `.github/` and the server details in this file.
+**Two repos, same `main` (since 2026-09-26).** The git remote `origin` fetches from the private repo and **pushes to both**
+(`git remote -v` shows two push URLs), so one `git push` keeps them identical. Nick is happy for all work to be public.
+- The self-hosted runner is registered **only on the private repo**, and GitHub Actions is **disabled on the public repo**.
+  **Never register a runner on, or re-enable Actions for, the public repo**: fork PRs could then run code on the VPS.
+  (The deploy workflow file in the public copy is inert: GitHub only routes a repo's jobs to runners registered to that repo.)
+- Nothing in this repo is secret. Keep it that way — no `.env`, keys or tokens; server secrets live only in `/srv/...` on the VPS.
 
 ## Stack & layout
 - React 19 + **plain CSS** (no UI library) · **Vite 8** (migrated from Create React App, Sept 2026).
@@ -59,7 +60,7 @@ card grid with the whole tune visible, class sections and filters, and a dense t
   multi-stage build (node:24 builds → `nginxinc/nginx-unprivileged:alpine-slim` serves), read-only root fs, `/tmp` tmpfs,
   config in `deploy/nginx.conf` (hashed `/assets/*` cached 1 year, `index.html` no-cache, `/healthz`). Behind the **shared Caddy**
   (`/srv/proxy`, site file `caddy/sites/car-dashboard.caddy`, on-demand TLS for car-dashboard.niku-aws.com) on the `web` network
-  as `car-dashboard:8080`. No `.env`, no `personal-db`. The same box runs Nick's **OpenClaw** — never touch anything outside this app's folder.
+  as `car-dashboard:8080`. No `.env`, no `personal-db`. The box runs other services too — never touch anything outside this app's folder.
   Server-wide runbook: `~/.claude/playbooks/heroku-to-hostinger-vps.md`.
 - **Deploy = push to `main` of the private repo** via the self-hosted runner (label `personal-vps-car-dashboard`, `/opt/actions-runner/car-dashboard`)
   → `deploy/remote-deploy.sh`. Watch: github.com/NikuPAN/car-dashboard-private/actions.
