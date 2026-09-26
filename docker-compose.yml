@@ -1,0 +1,23 @@
+# car-dashboard on Nick's personal VPS: `docker compose up -d --build` from /srv/personal-projects/car-dashboard/app.
+# A static site — no secrets, no database. The shared Caddy (/srv/proxy) reaches it as car-dashboard:8080 on the `web` network.
+name: car-dashboard
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    networks:
+      web:
+        aliases: [car-dashboard]
+    mem_limit: 32m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+networks:
+  web:
+    external: true

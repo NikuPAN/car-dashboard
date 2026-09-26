@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { styled } from '@mui/material/styles';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
@@ -19,7 +19,8 @@ const ExpandMore = styled(({ expand, ...other }) => (
   }),
 }));
 
-export default function CarCard({ car }) {
+// Memoised: cards are keyed by sheet position, so filtering re-renders only the cards that appear or disappear.
+export default memo(function CarCard({ car }) {
   const [expanded, setExpanded] = useState(false);
   const handleExpandClick = () => setExpanded(!expanded);
 
@@ -49,4 +50,4 @@ export default function CarCard({ car }) {
       </Collapse>
     </Card>
   );
-}
+});

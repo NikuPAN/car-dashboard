@@ -1,0 +1,17 @@
+name: Deploy to VPS
+# Runs ON Nick's personal VPS via a self-hosted runner (outbound-only, so SSH stays Tailscale-only).
+# No secrets needed: the runner user owns /srv/personal-projects/car-dashboard/app and is in the docker group.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency: deploy-car-dashboard
+jobs:
+  deploy:
+    runs-on: [self-hosted, personal-vps-car-dashboard]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy the committed tree into /srv/personal-projects/car-dashboard/app
+        run: git archive --format=tar HEAD | tar -x -C /srv/personal-projects/car-dashboard/app
+      - name: Rebuild and restart
+        run: bash /srv/personal-projects/car-dashboard/app/deploy/remote-deploy.sh

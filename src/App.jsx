@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useDeferredValue, memo, lazy, Suspense } from 'react';
 import {
   createTheme, ThemeProvider, CssBaseline,
   AppBar, Toolbar, Typography, IconButton,
-  Box, Grid, Table, TableBody, TableCell,
+  Box, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
@@ -12,8 +12,10 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 import GridViewIcon from '@mui/icons-material/GridView';
 import loadCarData from './load_data';
-import CarCard from './components/CarCard';
-import logo from './assets/logo.jpg';
+import logo from './assets/logo.webp';
+
+// The card view is only downloaded when someone switches to it.
+const CardView = lazy(() => import('./components/CardView'));
 
 // Styled search bar
 const SearchBar = styled('div')(({ theme }) => ({
@@ -45,6 +47,19 @@ const StyledInput = styled('input')(({ theme }) => ({
   height: '100%'
 }));
 
+// Memoised so filtering only mounts/unmounts the rows that changed (rows are keyed by their position in the sheet).
+const CarRow = memo(function CarRow({ car }) {
+  return (
+    <TableRow hover>
+      {Object.values(car).map((val, j) => (
+        <TableCell key={j} sx={{ whiteSpace: 'nowrap' }}>
+          {val}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+});
+
 export default function App() {
   const [cars, setCars] = useState([]);
   const [search, setSearch] = useState('');
@@ -53,10 +68,18 @@ export default function App() {
 
   useEffect(() => { loadCarData().then(setCars).catch(console.error); }, []);
   const theme = useMemo(() => createTheme({ palette: { mode } }), [mode]);
-  const filtered = useMemo(
-    () => cars.filter(c => c['車輛']?.toLowerCase().includes(search.toLowerCase())),
-    [cars, search]
+
+  // Lower-case each name once; `id` is the row's position in the sheet, a stable React key.
+  const indexed = useMemo(
+    () => cars.map((car, id) => ({ id, car, name: typeof car['車輛'] === 'string' ? car['車輛'].toLowerCase() : null })),
+    [cars]
   );
+  // Typing stays responsive: the list re-filters with the deferred value while the input updates immediately.
+  const deferredSearch = useDeferredValue(search);
+  const filtered = useMemo(() => {
+    const q = deferredSearch.toLowerCase();
+    return indexed.filter(r => r.name !== null && r.name.includes(q));
+  }, [indexed, deferredSearch]);
 
   // Layout constants
   const APPBAR_HEIGHT = 64;
@@ -68,7 +91,7 @@ export default function App() {
       {/* Fixed AppBar */}
       <AppBar position="fixed" color="primary" elevation={1}>
         <Toolbar sx={{ width: { xs: '100%', lg: '80vw' }, mx: 'auto' }}>
-        <Box component="img" src={logo} alt="Logo" sx={{ width: 32, height: 32, mr: 1 }} />
+        <Box component="img" src={logo} alt="Logo" width={32} height={32} sx={{ width: 32, height: 32, mr: 1 }} />
           <Typography variant="h6" noWrap>
             車輛底盤調教 by 鹹魚老默
           </Typography>
@@ -97,19 +120,15 @@ export default function App() {
           overflowY: 'auto'
         }}>
           {view === 'card' ? (
-            <Grid container spacing={2} direction="column">
-              {filtered.map((car, i) => (
-                <Grid item key={i} xs={12}>
-                  <CarCard car={car} />
-                </Grid>
-              ))}
-            </Grid>
+            <Suspense fallback={null}>
+              <CardView rows={filtered} />
+            </Suspense>
           ) : (
             <TableContainer component={Paper}>
-              <Table size="large" aria-label="car table">
+              <Table aria-label="car table">
                 <TableHead>
                   <TableRow>
-                    {Object.keys(filtered[0] || {}).map(key => (
+                    {Object.keys(filtered[0]?.car || {}).map(key => (
                       <TableCell
                         key={key}
                         sx={{ minWidth: 120, whiteSpace: 'nowrap' }}
@@ -120,15 +139,7 @@ export default function App() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filtered.map((car, idx) => (
-                    <TableRow key={idx} hover>
-                      {Object.values(car).map((val, j) => (
-                        <TableCell key={j} sx={{ whiteSpace: 'nowrap' }}>
-                          {val}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
+                  {filtered.map(r => <CarRow key={r.id} car={r.car} />)}
                 </TableBody>
               </Table>
             </TableContainer>
