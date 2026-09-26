@@ -39,7 +39,10 @@ Live at **https://car-dashboard.niku-aws.com** · GitHub: **`NikuPAN/car-dashboa
   - `tools/car-images/sources.json` maps every card's base name to one source image: **racingmaster.info** (98 cars, 1500×680
     showroom shots; the game's rarity/class banners in the top 60 px are cropped, **the site's watermark is kept — Nick's decision**)
     or **IGCD.net** (15 cars racingmaster.info lacks or only has in its older red showroom; no watermark). "Nissan GTR R33 頭文字D版"
-    uses IGCD's "1994 Skyline GT-R" 頭文字D car, which looks like an R32 — confirm with Nick if anyone questions it.
+    uses IGCD's "1994 Skyline GT-R" 頭文字D car. Nick confirmed (2026-09-26) that this car is the **R32 master version** (大師版),
+    which the game treats as a separate car; the sheet row just says R33. The image is correct.
+  - Images are keyed by the sheet's exact car name: if a row is renamed in the sheet (e.g. R33 → R32), rename its `car` in
+    `sources.json` too and rebuild, or that card silently loses its banner.
   - `cd tools/car-images && npm install && npm run build` downloads (cached in `.cache/`), crops, writes `out/<slug>.<hash>.webp` and
     `src/car-images.json` (name → file). Then **`bash deploy/push-images.sh`** uploads to `/srv/personal-projects/car-dashboard/images`
     (and prunes stale files), and only then commit `src/car-images.json` and push.
