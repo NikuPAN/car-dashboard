@@ -1,0 +1,8 @@
+{
+  "name": "car-images",
+  "private": true,
+  "type": "module",
+  "description": "Builds the card banner images from tools/car-images/sources.json (kept out of the app's own dependencies).",
+  "scripts": { "build": "node build.mjs" },
+  "dependencies": { "sharp": "^0.34.1" }
+}

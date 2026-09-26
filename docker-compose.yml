@@ -7,6 +7,9 @@ services:
     restart: unless-stopped
     read_only: true
     tmpfs: [/tmp]
+    volumes:
+      # Car banner images (tools/car-images -> deploy/push-images.sh); kept out of git and out of the image.
+      - ../images:/usr/share/nginx/html/cars:ro
     networks:
       web:
         aliases: [car-dashboard]

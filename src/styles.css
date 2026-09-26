@@ -136,8 +136,12 @@ mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 1
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 14px 12px 16px;
   box-shadow: inset 3px 0 0 var(--tone);
   /* Off-screen cards skip layout and paint entirely — the main memory saving on long lists. */
-  content-visibility: auto; contain-intrinsic-size: auto 236px;
+  content-visibility: auto; contain-intrinsic-size: auto 380px;
+  overflow: hidden;
 }
+/* Full-bleed car banner (560×232 WebP from tools/car-images, served from the VPS under /cars/). */
+.card-media { margin: -14px -14px 12px -16px; aspect-ratio: 560 / 232; background: var(--surface-2); }
+.card-media img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .card-head { display: flex; align-items: flex-start; gap: 10px; }
 .card-name { flex: 1; font-size: 15px; font-weight: 650; line-height: 1.35; }
 .badge {

@@ -35,6 +35,20 @@ Live at **https://car-dashboard.niku-aws.com** · GitHub: **`NikuPAN/car-dashboa
 - `src/components/CarCard.jsx` — a car with several tunes gets a pill switch (sheet order; no suffix = 標準; "a, b" shown as "a · b");
   a search that matches only a variant (e.g. "曼巴") pre-selects it. Every value is visible, no expanding: the first section (改裝方向)
   as 5 cells, the others (懸吊, 車輪) as side-by-side label/value columns. `src/components/CarTable.jsx` (**lazy-loaded**) mirrors the sheet's two-level header.
+- **Car images (added 2026-09-26).** Each card has a 560×232 WebP banner from the game Racing Master (巔峰極速, NetEase).
+  - `tools/car-images/sources.json` maps every card's base name to one source image: **racingmaster.info** (98 cars, 1500×680
+    showroom shots; the game's rarity/class banners in the top 60 px are cropped, **the site's watermark is kept — Nick's decision**)
+    or **IGCD.net** (15 cars racingmaster.info lacks or only has in its older red showroom; no watermark). "Nissan GTR R33 頭文字D版"
+    uses IGCD's "1994 Skyline GT-R" 頭文字D car, which looks like an R32 — confirm with Nick if anyone questions it.
+  - `cd tools/car-images && npm install && npm run build` downloads (cached in `.cache/`), crops, writes `out/<slug>.<hash>.webp` and
+    `src/car-images.json` (name → file). Then **`bash deploy/push-images.sh`** uploads to `/srv/personal-projects/car-dashboard/images`
+    (and prunes stale files), and only then commit `src/car-images.json` and push.
+  - **The images are never committed** (third-party game art; the public repo must not republish it). nginx serves them read-only at
+    `/cars/` from a bind mount (`docker-compose.yml`), cached 1 year (hash in the name). `vite.config.js` serves `tools/car-images/out`
+    at `/cars/` for local `dev`/`preview`. A card with no mapping, or a failed load, simply has no banner.
+  - A new car in the sheet has no image until it's added to `sources.json`: find it on racingmaster.info (WordPress media API
+    `https://racingmaster.info/wp-json/wp/v2/media`, 1500×680 PNGs from 2026) or IGCD (`https://www.igcd.net/game.php?id=1000015448`,
+    image `https://www.igcd.net/images/<id[0:3]>/<id[3:]>.jpg`). Footer credits NetEase and both sites.
 - `src/ui.jsx` — class colour mapping `tone()`, search `highlight()`, inline SVG icons.
 - `src/styles.css` — dark (default) / light tokens on `:root[data-theme]`; class colours via `.tone-*`; phones get a 3-row sticky bar
   (sort, view and class chips share one sideways-scrolling row).
@@ -49,7 +63,8 @@ card grid with the whole tune visible, class sections and filters, and a dense t
 
 ## Performance notes (measured 2026-09-26, Edge, clean profile, renderer private memory)
 - Bundle: 199 KB JS / 65 KB gz + 3 KB CSS. Container: nginx, ~2 MB RAM (32 MB cap).
-- Browser tab: blank tab ~25 MB, + CJK fonts ~5 MB, + 165 cards painted ~13 MB, + React/app ~10 MB → cards ~55 MB, table ~57 MB
+- Browser tab: blank tab ~25 MB, + CJK fonts ~5 MB, + 165 cards painted ~13 MB, + React/app ~10 MB → cards ~55 MB, table ~57 MB.
+  After grouping into 113 cards and adding the lazy-loaded banners (20 of 113 load on the first screen): cards ~60 MB
   (the old MUI build was ~51 MB while showing less: 改裝方向 squashed into one column, details collapsed). Keep it that way:
   - **Never put `position: sticky` on many table cells** — each gets its own compositing layer (~12 MB for 165 name cells).
     The whole `<thead>` is sticky; the name column is pinned only under 900 px, where the table actually scrolls sideways.

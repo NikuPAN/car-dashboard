@@ -209,6 +209,7 @@ export default function App() {
 
       <footer className="container footer">
         資料來源：Google Sheet{data?.meta.sheetUpdated && `・更新於 ${data.meta.sheetUpdated}`}
+        <br />車輛圖片：Racing Master © NetEase，取自 racingmaster.info 及 IGCD.net（愛好者非官方網站）
       </footer>
     </>
   );
