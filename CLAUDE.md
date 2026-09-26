@@ -2,7 +2,13 @@
 
 A static single-page dashboard of car chassis tunes. **No backend, no database, no secrets**: the browser downloads a public
 Google Sheet as CSV and renders it as a searchable card grid or a dense table.
-Live at **https://car-dashboard.niku-aws.com** · GitHub **`NikuPAN/car-dashboard`**.
+Live at **https://car-dashboard.niku-aws.com** · GitHub **`NikuPAN/car-dashboard-private`** (private, deployed).
+
+**Two repos (since 2026-09-26):** all work goes to the **private** `NikuPAN/car-dashboard-private` (git remote `origin`), which has the
+self-hosted runner. The **public** `NikuPAN/car-dashboard` (remote `public`) stays as Nick's open-source snapshot of the original
+Create React App version (`58a1857`). **Never push to `public`**, and never add a runner or the deploy workflow there: a runner on a
+public repo lets any fork PR run code on the VPS. Publishing newer code to the public repo is Nick's call, and it must leave out
+`deploy/`, `.github/` and the server details in this file.
 
 ## Stack & layout
 - React 19 + **plain CSS** (no UI library) · **Vite 8** (migrated from Create React App, Sept 2026).
@@ -49,15 +55,14 @@ card grid with the whole tune visible, class sections and filters, and a dense t
 - **Cut-over done 2026-09-26 (~12:30 Brisbane):** car-dashboard.niku-aws.com CNAME → `srv1672611.hstgr.cloud`; Let's Encrypt cert via Caddy
   on-demand TLS. The Heroku app `car-dashboard` is off (dynos 0, maintenance on; it has no add-ons). Staging URL
   https://car-dashboard.72-60-198-241.sslip.io points at the same container.
-- **Repo visibility (open as of 2026-09-26):** `NikuPAN/car-dashboard` is **public**. A self-hosted runner on a public repo lets fork PRs run
-  code on the VPS, so the runner is only registered once Nick makes the repo private (recommended) — until then deploy with `deploy/push-to-vps.sh`.
 - Runs on Nick's personal Hostinger VPS (`srv1672611`) as Docker Compose project **`car-dashboard`** in `/srv/personal-projects/car-dashboard/app`:
   multi-stage build (node:24 builds → `nginxinc/nginx-unprivileged:alpine-slim` serves), read-only root fs, `/tmp` tmpfs,
   config in `deploy/nginx.conf` (hashed `/assets/*` cached 1 year, `index.html` no-cache, `/healthz`). Behind the **shared Caddy**
   (`/srv/proxy`, site file `caddy/sites/car-dashboard.caddy`, on-demand TLS for car-dashboard.niku-aws.com) on the `web` network
   as `car-dashboard:8080`. No `.env`, no `personal-db`. The same box runs Nick's **OpenClaw** — never touch anything outside this app's folder.
   Server-wide runbook: `~/.claude/playbooks/heroku-to-hostinger-vps.md`.
-- **Deploy = push to `main`** via the self-hosted runner (label `personal-vps-car-dashboard`) → `deploy/remote-deploy.sh`, once registered.
+- **Deploy = push to `main` of the private repo** via the self-hosted runner (label `personal-vps-car-dashboard`, `/opt/actions-runner/car-dashboard`)
+  → `deploy/remote-deploy.sh`. Watch: github.com/NikuPAN/car-dashboard-private/actions.
   Fallback from the PC: `bash deploy/push-to-vps.sh`. Access: `ssh root@100.104.160.3` (Nick's personal tailnet, Tailscale SSH check mode).
 - Windows checkout has `core.autocrlf=true`: `.gitattributes` forces LF for everything that runs on Linux; `push-to-vps.sh` archives with `core.autocrlf=false`.
 
