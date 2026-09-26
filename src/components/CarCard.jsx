@@ -1,53 +1,58 @@
-import React, { useState, memo } from 'react';
-import { styled } from '@mui/material/styles';
-import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
-import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
-import Collapse from '@mui/material/Collapse';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { memo } from 'react';
+import { highlight, tone } from '../ui';
 
-const ExpandMore = styled(({ expand, ...other }) => (
-  <IconButton {...other} />
-))(({ theme, expand }) => ({
-  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto',
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.shortest,
-  }),
-}));
+function Value({ v }) {
+  if (!v.text) return <span className="empty">—</span>;
+  if (v.pair) return <>{v.pair[0]}<span className="sep">/</span>{v.pair[1]}</>;
+  return v.text;
+}
 
-// Memoised: cards are keyed by sheet position, so filtering re-renders only the cards that appear or disappear.
-export default memo(function CarCard({ car }) {
-  const [expanded, setExpanded] = useState(false);
-  const handleExpandClick = () => setExpanded(!expanded);
-
+// One car, fully visible (no expanding): the first sheet section (改裝方向) as compact cells,
+// the remaining sections (懸吊, 車輪) side by side as label/value rows.
+export default memo(function CarCard({ car, sections, q }) {
+  const [tune, ...specs] = sections;
   return (
-    <Card>
-      <CardHeader title={car['車輛']} subheader={car['組別']} />
-      <CardActions disableSpacing>
-        <ExpandMore
-          expand={expanded}
-          onClick={handleExpandClick}
-          aria-expanded={expanded}
-          aria-label="show more"
-        >
-          <ExpandMoreIcon />
-        </ExpandMore>
-      </CardActions>
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <CardContent>
-          {Object.entries(car).map(([k, v]) =>
-            k === '車輛' || k === '組別' ? null : (
-              <Typography paragraph key={k}>
-                <strong>{k}:</strong> {v}
-              </Typography>
-            )
-          )}
-        </CardContent>
-      </Collapse>
-    </Card>
+    <article className={`card tone-${tone(car.cls)}`}>
+      <div className="card-head">
+        <h3 className="card-name">{highlight(car.base, q)}</h3>
+        <span className="badge">{car.cls}</span>
+      </div>
+      {(car.variant || car.updated) && (
+        <p className="card-meta">
+          {car.variant && <span className="tag">{highlight(car.variant, q)}</span>}
+          {car.updated && <time dateTime={car.updated}>更新 {car.updated}</time>}
+        </p>
+      )}
+      {tune && (
+        <div className="tune">
+          <h4 className="section-label">{tune.title}</h4>
+          <div className="tune-cells">
+            {tune.fields.map((f, i) => (
+              <div className="cell" key={f.col}>
+                <span className="cell-label">{f.label}</span>
+                <span className="cell-value"><Value v={car.values[0][i]} /></span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {specs.length > 0 && (
+        <div className="specs">
+          {specs.map((s, si) => (
+            <div className="spec" key={s.title}>
+              <h4 className="section-label">{s.title}</h4>
+              <dl>
+                {s.fields.map((f, fi) => (
+                  <div className="row" key={f.col}>
+                    <dt>{f.label}{f.hint && <small>{f.hint.join('/')}</small>}</dt>
+                    <dd><Value v={car.values[si + 1][fi]} /></dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+      )}
+    </article>
   );
 });

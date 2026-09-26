@@ -1,22 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="/favicon.ico" sizes="48x48 32x32 16x16" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#0e1014" />
     <meta name="description" content="車輛底盤調教 by 鹹魚老默" />
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="preconnect" href="https://docs.google.com" crossorigin />
     <title>車輛底盤調教 by 鹹魚老默</title>
     <script>
+      // Apply the saved theme before first paint (no flash); dark is the default.
+      try {
+        var t = localStorage.getItem('cd-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) {}
       // Start the sheet download now, in parallel with the app bundle; src/load_data.js picks this promise up.
-      window.__carsCsv = fetch('%CARS_CSV_URL%').then((r) => {
+      window.__carsCsv = fetch('%CARS_CSV_URL%').then(function (r) {
         if (!r.ok) throw new Error('sheet HTTP ' + r.status);
         return r.text();
       });
-      window.__carsCsv.catch(() => {});
+      window.__carsCsv.catch(function () {});
     </script>
   </head>
   <body>

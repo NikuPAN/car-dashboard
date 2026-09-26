@@ -1,0 +1,221 @@
+/* car-dashboard — plain CSS, no runtime styling. Theme = [data-theme] on <html> (set before first paint in index.html). */
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0e1014;
+  --surface: #161920;
+  --surface-2: #1e222b;
+  --border: #262b35;
+  --border-strong: #353b47;
+  --text: #e9ebef;
+  --muted: #9aa1ac;
+  --dim: #5c6370;
+  --focus: #7aa7ff;
+  --mark: rgba(122, 167, 255, 0.32);
+  --tone-extreme: #ff7d6e;
+  --tone-performance: #f2b544;
+  --tone-sport: #5cb2ff;
+  --tone-offroad: #63d08e;
+  --tone-other: #a3a9b5;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --border: #e1e4ea;
+  --border-strong: #cdd2da;
+  --text: #15181e;
+  --muted: #5a6170;
+  --dim: #a2a8b3;
+  --focus: #2f6fec;
+  --mark: rgba(47, 111, 236, 0.2);
+  --tone-extreme: #d4473a;
+  --tone-performance: #b07515;
+  --tone-sport: #1f72cf;
+  --tone-offroad: #238650;
+  --tone-other: #6b7280;
+}
+.tone-extreme { --tone: var(--tone-extreme); }
+.tone-performance { --tone: var(--tone-performance); }
+.tone-sport { --tone: var(--tone-sport); }
+.tone-offroad { --tone: var(--tone-offroad); }
+.tone-other { --tone: var(--tone-other); }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2, h3, h4, p, dl, dd { margin: 0; }
+mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 1px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.container { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 24px; }
+
+/* ── Sticky top bar: app bar + toolbar ───────────────────────────────── */
+.topbar { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--border); }
+.appbar { display: flex; align-items: center; gap: 10px; height: 56px; }
+.logo { border-radius: 6px; flex: none; }
+.title { font-size: 17px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.title .by { font-weight: 400; color: var(--muted); font-size: 14px; }
+.spacer { flex: 1; }
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 36px; min-width: 36px; padding: 0 8px; border: 1px solid transparent; border-radius: 8px;
+  background: none; color: var(--muted); text-decoration: none; font-size: 13px;
+}
+.icon-btn:hover { color: var(--text); background: var(--surface-2); }
+
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding-bottom: 12px; }
+.search {
+  flex: 1 1 300px; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 8px 0 12px;
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: 10px; color: var(--muted);
+}
+.search:focus-within { border-color: var(--focus); }
+.search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; color: var(--text); font-size: 15px; }
+.search input::placeholder { color: var(--dim); }
+.search input::-webkit-search-cancel-button { display: none; }
+.search kbd {
+  font: 12px/1 inherit; color: var(--dim); border: 1px solid var(--border-strong); border-radius: 5px; padding: 3px 6px;
+}
+.search .clear { display: inline-flex; border: 0; background: none; color: var(--muted); padding: 6px; border-radius: 6px; }
+.search .clear:hover { background: var(--surface-2); color: var(--text); }
+
+/* chips + controls; on phones they share one sideways-scrolling row (see media query) */
+.filters { display: contents; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px;
+  border: 1px solid var(--border-strong); border-radius: 999px; background: none; color: var(--muted); white-space: nowrap;
+}
+.chip:hover { color: var(--text); }
+.chip[aria-pressed='true'] { color: var(--text); background: var(--surface-2); border-color: var(--tone, var(--text)); }
+.chip .count { font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed='true'] .count { color: var(--muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tone); flex: none; }
+
+.controls { display: flex; gap: 8px; margin-left: auto; }
+.select select {
+  height: 34px; padding: 0 30px 0 10px; border: 1px solid var(--border-strong); border-radius: 8px;
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aa1ac' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+  appearance: none; color: var(--text);
+}
+.segmented { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; }
+.segmented button {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 0; background: none; color: var(--muted);
+}
+.segmented button + button { border-left: 1px solid var(--border-strong); }
+.segmented button[aria-pressed='true'] { background: var(--surface-2); color: var(--text); }
+
+/* ── Main ─────────────────────────────────────────────────────────────── */
+.main { padding-top: 14px; padding-bottom: 24px; min-height: 60vh; }
+.result-count { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+.state { padding: 64px 0; text-align: center; color: var(--muted); }
+.state p + .btn { margin-top: 12px; }
+.btn { height: 34px; padding: 0 14px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); }
+.btn:hover { background: var(--surface-2); }
+
+.group + .group { margin-top: 28px; }
+.group-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 650; margin-bottom: 12px; }
+.group-title .count, .group-row .count {
+  font-size: 12px; font-weight: 500; color: var(--muted); background: var(--surface-2); border-radius: 999px; padding: 1px 8px;
+}
+
+/* ── Cards ────────────────────────────────────────────────────────────── */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr)); gap: 12px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 14px 12px 16px;
+  box-shadow: inset 3px 0 0 var(--tone);
+  /* Off-screen cards skip layout and paint entirely — the main memory saving on long lists. */
+  content-visibility: auto; contain-intrinsic-size: auto 236px;
+}
+.card-head { display: flex; align-items: flex-start; gap: 10px; }
+.card-name { flex: 1; font-size: 15px; font-weight: 650; line-height: 1.35; }
+.badge {
+  flex: none; font-size: 12px; line-height: 20px; padding: 0 8px; border-radius: 6px;
+  color: var(--tone); background: color-mix(in srgb, var(--tone) 14%, transparent);
+}
+.card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 4px; font-size: 12px; color: var(--muted); }
+.tag { color: var(--text); background: var(--surface-2); border-radius: 5px; padding: 1px 7px; }
+.card-meta time { font-variant-numeric: tabular-nums; }
+
+.section-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 6px; }
+.tune { margin-top: 12px; }
+.tune-cells { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.cell { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px 5px; background: var(--surface-2); border-radius: 8px; }
+.cell-label { font-size: 11px; color: var(--muted); }
+.cell-value { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.specs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.spec dl { display: grid; gap: 3px; }
+.row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.row dt { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.row dt small { margin-left: 4px; font-size: 11px; color: var(--dim); }
+.row dd { font-size: 13.5px; font-weight: 550; font-variant-numeric: tabular-nums; text-align: right; }
+.sep { color: var(--dim); margin: 0 4px; font-weight: 400; }
+.empty { color: var(--dim); font-weight: 400; }
+
+/* ── Table ────────────────────────────────────────────────────────────── */
+.table-wrap {
+  overflow: auto; max-height: calc(100dvh - var(--topbar-h, 150px) - 70px);
+  border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+}
+.data-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+.data-table th, .data-table td { padding: 7px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; text-align: left; }
+/* The whole header block is sticky, not each cell: per-cell sticky gives every cell its own compositing layer (measured ~12 MB). */
+.data-table thead { position: sticky; top: 0; z-index: 2; }
+.data-table thead th { background: var(--surface-2); color: var(--muted); font-size: 12px; font-weight: 600; }
+.data-table thead tr:first-child th { height: 32px; }
+.data-table thead .col-group { text-align: center; color: var(--text); border-left: 1px solid var(--border); }
+.data-table thead .col-sub small { margin-left: 4px; color: var(--dim); font-weight: 400; }
+.data-table .col-name { width: 1%; background: var(--surface); font-weight: 550; color: var(--text); }
+.data-table thead .col-name { background: var(--surface-2); color: var(--muted); }
+.data-table tbody tr:hover td, .data-table tbody tr:hover .col-name { background: var(--surface-2); }
+.data-table td.num { text-align: center; }
+.data-table td.empty { color: var(--dim); }
+.data-table td.date { color: var(--muted); }
+.data-table .group-row th {
+  position: static; background: var(--bg); color: var(--text); font-size: 13px; font-weight: 650; padding: 10px 12px;
+}
+.data-table .group-row th > * { vertical-align: middle; }
+.data-table .group-row .dot { display: inline-block; margin-right: 8px; }
+.data-table .group-row .count { margin-left: 8px; }
+
+.footer { padding-top: 8px; padding-bottom: 28px; color: var(--dim); font-size: 12px; }
+
+/* ── Small screens ────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .container { padding: 0 14px; }
+  .appbar { height: 50px; }
+  .title { font-size: 15px; }
+  .title .by, .icon-btn.with-label span, .segmented span { display: none; }
+  .toolbar { gap: 8px; padding-bottom: 10px; }
+  .search { flex-basis: 100%; }
+  /* one row: sort + view first, then the class chips, scrolling sideways with a fade at the edge */
+  .filters {
+    display: flex; gap: 6px; flex: 1 1 100%; overflow-x: auto; scrollbar-width: none;
+    margin: 0 -14px; padding: 0 14px;
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .chips { flex-wrap: nowrap; }
+  .controls { order: -1; margin-left: 0; flex: none; }
+  .main { padding-top: 12px; }
+  .specs { gap: 12px; }
+}
+/* Pin the car name only where the table scrolls sideways; on wide screens every column fits, and 165 sticky cells cost ~12 MB. */
+@media (max-width: 900px) {
+  .data-table .col-name { position: sticky; left: 0; z-index: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chip, .icon-btn, .segmented button, .btn { transition: background-color 0.15s, color 0.15s, border-color 0.15s; }
+}
