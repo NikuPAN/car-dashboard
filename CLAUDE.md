@@ -76,7 +76,7 @@ card grid with the whole tune visible, class sections and filters, and a dense t
 
 ## Hosting & deploy — Nick's personal VPS
 - **Cut-over done 2026-09-26 (~12:30 Brisbane):** car-dashboard.niku-aws.com CNAME → `srv1672611.hstgr.cloud`; Let's Encrypt cert via Caddy
-  on-demand TLS. The Heroku app `car-dashboard` is off (dynos 0, maintenance on; it has no add-ons). Staging URL
+  on-demand TLS. The Heroku app `car-dashboard` was **deleted** the same day (it had no add-ons). Staging URL
   https://car-dashboard.72-60-198-241.sslip.io points at the same container.
 - Runs on Nick's personal Hostinger VPS (`srv1672611`) as Docker Compose project **`car-dashboard`** in `/srv/personal-projects/car-dashboard/app`:
   multi-stage build (node:24 builds → `nginxinc/nginx-unprivileged:alpine-slim` serves), read-only root fs, `/tmp` tmpfs,
